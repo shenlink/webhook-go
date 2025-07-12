@@ -1,18 +1,21 @@
 package gitee
 
 import (
+	// "log"
+	"net/http"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 	"fmt"
-	"net/http"
 	"strconv"
 	"time"
 	"webhook/config"
+
+	"github.com/gin-gonic/gin"
 )
 
-// validateToken 验证给定的token和timestamp是否有效。
+// validateParams 验证给定的token和timestamp是否有效。
 // 参数:
 //
 //	token: 待验证的token。
@@ -22,7 +25,7 @@ import (
 //
 //	int: HTTP状态码。
 //	error: 错误信息，如果验证失败会返回具体的错误信息，否则返回 nil
-func validateToken(token, timestamp string) (int, error) {
+func validateParams(token, timestamp string) (int, error) {
 	// 检查token和timestamp是否为空
 	if token == "" || timestamp == "" {
 		return http.StatusBadRequest, errors.New("没有header头")
@@ -68,4 +71,15 @@ func abs(x int64) int64 {
 		return -x
 	}
 	return x
+}
+
+// validateRequest 验证 Gitee 请求的合法性。
+// 参数：c 请求上下文
+func validateRequest(c *gin.Context) (int, error) {
+	// 获取请求头中的token和timestamp
+	token := c.GetHeader("X-Gitee-Token")
+	timestamp := c.GetHeader("X-Gitee-Timestamp")
+
+	// 验证token和timestamp的合法性
+	return validateParams(token, timestamp)
 }
